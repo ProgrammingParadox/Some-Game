@@ -1,6 +1,39 @@
 import java.util.ArrayList;
 import GUI.*;
 
+// c:; cd 'c:\Users\spott\Documents\Joshy\programming\Some Game\Some Game'; & 'C:\Program Files\Java\jdk-18.0.1.1\bin\java.exe' '-XX:+ShowCodeDetailsInExceptionMessages' '-cp' 'C:\Users\spott\Documents\Joshy\programming\Some Game\Some Game\bin' 'App' 
+
+// so...
+/*
+ 
+    Idea for a thing
+
+    Todo/ideas
+
+    force fields
+        - maybe later make bullets bounce off of 
+          them? Probably needs some vector 
+          algerbra, which I do not have memorized...
+
+    Circle bullets will "explode" or "go poof" on
+    impact with a square one
+
+    Circling/going all the way around a bullet 
+    somewhat closely gives points and destroys 
+    bullets?
+
+    Being able to destroy a emitter by directing a
+    projectile at it
+
+    Pressing the "/" key (or "q" key if wasd keys 
+    added) releases some sort of emp blast that 
+    clears bullets within a certain radius; has a
+    cooldown
+
+    Graph and stats on scores
+
+ */
+
 public class App extends GUI {
     public Player player;
 
@@ -15,6 +48,9 @@ public class App extends GUI {
     public int score = 0;
 
     public ArrayList<Emitter> emitters = new ArrayList<Emitter>(0);
+
+    public ArrayList<SquareDeflector> squareDeflectors = new ArrayList<>(0);
+    public ArrayList<CircleDeflector> circleDeflectors = new ArrayList<>(0);
 
     public App(){
         super("Some game", 800, 800);
@@ -41,18 +77,29 @@ public class App extends GUI {
         emitters.add(new Emitter(x, y));
     }
 
+    public void addSquareDeflector(int x, int y, int width, int height){
+        if(this.squareDeflectors == null) return;
+
+        squareDeflectors.add(new SquareDeflector(x, y, width, height));
+    }
+    public void addCircleDeflector(int x, int y, int radius){
+        if(this.circleDeflectors == null) return;
+
+        circleDeflectors.add(new CircleDeflector(x, y, radius));
+    }
+
     public void drawBullets(){
         if(bullets == null){ return; }
 
         for(int i = bullets.size()-1; i>=0; i--){
-            bullets.get(i).display(this, player);
-
-            if(bullets.get(i).dead){
-                bullets.remove(i);
-            }
+            bullets.get(i).display(this, player, this.squareDeflectors, this.circleDeflectors);
 
             if(player.inBullet(bullets.get(i))){
                 scene = "dead";
+            }
+
+            if(bullets.get(i).dead){
+                bullets.remove(i);
             }
         }
     }
@@ -68,6 +115,32 @@ public class App extends GUI {
         }
     }
 
+    public void drawSquareDeflectors(){
+        if(squareDeflectors == null) return;
+
+        for (int i = squareDeflectors.size()-1; i>=0; i--) {
+            squareDeflectors.get(i).display(this);
+
+            if(squareDeflectors.get(i).dead){
+                squareDeflectors.remove(i);
+            }
+        }
+    }
+    public void drawCircleDeflectors(){
+        if(circleDeflectors == null) return;
+
+        for (int i = circleDeflectors.size()-1; i>=0; i--) {
+            circleDeflectors.get(i).display(this);
+
+            if(circleDeflectors.get(i).dead){
+                circleDeflectors.remove(i);
+            }
+        }
+    }
+
+    boolean justAddedEmitter = false;
+    boolean justAddedSquareDeflector = false;
+    boolean justAddedCircleDeflector = false;
     public void play(){
         if(this.player != null){
             this.player.display(this);
@@ -75,9 +148,39 @@ public class App extends GUI {
 
         drawBullets();
         drawEmitters();
+        
+        drawSquareDeflectors();
+        drawCircleDeflectors();
 
-        if(frames % Math.floor(bulletRate * 100) == 0){
+        int multiplier = 15;
+        if(frames % Math.floor(bulletRate * 10 * multiplier) == 0 && frames != 0 && !justAddedEmitter){
             addEmitter((int)(Math.random() * 800), (int)(Math.random() * 800));
+
+            justAddedEmitter = true;
+        } else if(justAddedEmitter && frames % Math.floor(bulletRate * 10 * multiplier) != 0){
+            justAddedEmitter = false;
+        }
+
+        if(frames % (92 * multiplier) == 0 && frames != 0 && !justAddedSquareDeflector){
+            addSquareDeflector(
+                (int)(Math.random() * 800), (int)(Math.random() * 800), 
+                200 + (int)(Math.random() * 100), 200 + (int)(Math.random() * 100)
+            );
+
+            justAddedSquareDeflector = true;
+        } else if(justAddedSquareDeflector && frames % (92 * multiplier) != 0){
+            justAddedSquareDeflector = false;
+        }
+
+        if(frames % (73 * multiplier) == 0 && frames != 0 && !justAddedCircleDeflector){
+            addCircleDeflector(
+                (int)(Math.random() * 800), (int)(Math.random() * 800), 
+                100 + (int)(Math.random() * 100)
+            );
+
+            justAddedCircleDeflector = true;
+        } else if(justAddedCircleDeflector && frames % (73 * multiplier) != 0){
+            justAddedCircleDeflector = false;
         }
 
         // System.out.println(dbullets.size());
@@ -112,6 +215,10 @@ public class App extends GUI {
 
     public void reset(){
         bullets.clear();
+
+        squareDeflectors.clear();
+        circleDeflectors.clear();
+
         emitters.clear();
         emitters.add(new Emitter(400, 400));
 
@@ -131,6 +238,8 @@ public class App extends GUI {
     public Button play = new Button("Play", -5, 350, 500, 40, new Function(){
         public void function(){
             reset();
+
+            // addCircleDeflector(30, 30, 200);
 
             scene = "play";
         }

@@ -78,6 +78,11 @@ public class GUI extends JPanel implements Runnable {
         return frame.add(obj);
     }
 
+    // maybe, for text metrics, have a local
+    // graphics object I change along with 
+    // textSize so when needed the text width
+    // and stuff can be supplied?
+
     public ArrayList<Pair<String, double[]>> getTransformations(){
         return (ArrayList<Pair<String, double[]>>) transformations.clone();
     }

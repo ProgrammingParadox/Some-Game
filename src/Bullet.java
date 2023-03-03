@@ -2,6 +2,8 @@ import java.util.ArrayList;
 
 import GUI.Pair;
 
+// todo: colliding circle bullets with squares blows 'em up'
+
 public class Bullet {
     public double x = 0;
     public double y = 0;
@@ -10,6 +12,7 @@ public class Bullet {
 
     public double speed = 1;
 
+    public int rate = 1;
     public int life = 0;
 
     public boolean dead = false;
@@ -54,7 +57,10 @@ public class Bullet {
         this.type = type;
     }
 
-    public void display(App app, Player player){
+    public void display(App app, Player player, 
+        ArrayList<SquareDeflector> squareDeflectors,
+        ArrayList<CircleDeflector> circleDeflectors
+    ){
         this.x += Math.cos(Math.toRadians(this.direction)) * this.speed;
         this.y += Math.sin(Math.toRadians(this.direction)) * this.speed;
 
@@ -72,9 +78,16 @@ public class Bullet {
             this.dead = true;
         }
 
-        if(this.type == 1){
-            app.ellipse((int)this.x, (int)this.y, 10, 10);
-        } else {
+        if(this.type == 0){
+            for (SquareDeflector cur : squareDeflectors) {
+                if(this.x + 10 > cur.x-cur.width/2 && this.x < cur.x + cur.width/2 &&
+                   this.y + 10 > cur.y-cur.height/2 && this.y < cur.y + cur.height/2) {
+                    // this.direction *= -1;
+
+                    rate += 5;
+                }
+            }
+
             ArrayList<Pair<String, double[]>> saved = app.getTransformations();
 
             app.translate(this.x + 5, this.y + 5);
@@ -82,6 +95,20 @@ public class Bullet {
             app.rect(-5, -5, 10, 10);
 
             app.setTransformations(saved);
+        } else if(this.type == 1){
+            for (CircleDeflector cur : circleDeflectors) {
+                if(
+                    Math.sqrt(
+                        Math.pow((this.y - cur.y), 2) + Math.pow((this.x - cur.x), 2)
+                    ) < cur.radius + 5 
+                ) {
+                    // this.direction *= -1;
+
+                    rate += 5;
+                }
+            }
+
+            app.ellipse((int)this.x, (int)this.y, 10, 10);
         }
 
         // System.out.println("e");
@@ -98,7 +125,7 @@ public class Bullet {
             bulletEffects.add(new BulletEffect(2 + (int)(this.x + 5 * Math.random()), 2 + (int)(this.y + 5 * Math.random()), Math.max(0, Math.min(255, 500 - this.life))));
         }
 
-        life++;
+        life += rate;
     }
 
     public static void main(String[] args){

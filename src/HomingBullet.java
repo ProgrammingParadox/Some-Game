@@ -1,6 +1,6 @@
 import java.util.ArrayList;
 
-import GUI.GUI;
+// import GUI.GUI;
 
 public class HomingBullet extends Bullet {
     public double x = 0;

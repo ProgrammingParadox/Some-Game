@@ -18,6 +18,12 @@ public class Player {
 
     }
 
+    // TODO: (make square effect and player special)
+    public int cooldown = 0;
+    public void special(GUI app){
+        
+    }
+
     public boolean inBullet(Bullet bullet){
         return bullet.x + 10 > this.x && bullet.x < this.x + 50 &&
                bullet.y + 10 > this.y && bullet.y < this.y + 50;
